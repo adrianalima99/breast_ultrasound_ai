@@ -3,13 +3,13 @@
 [![Python](https://img.shields.io/badge/Python-3.8%2B-blue.svg)](https://python.org)
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.0%2B-red.svg)](https://pytorch.org)
 [![Status](https://img.shields.io/badge/Status-Implementado-green.svg)](README.md)
-[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+
 
 Um sistema completo de classificação de imagens de ultrassonografia de mama utilizando **Deep Learning** com **PyTorch** e **Transfer Learning**. O modelo classifica imagens em três categorias: **benign** (benigno), **malignant** (maligno) e **normal**.
 
 ## 📊 Status do Projeto
 
-### ✅ **IMPLEMENTADO E FUNCIONAL**
+### ✅ **IMPLEMENTADO E FUNCIONAL** (podendo ser validada e alterada vendo a necessidade)
 - ✅ **Sistema completo de classificação** com DenseNet121
 - ✅ **Dataset estruturado** (1,578 imagens: 891 benignas, 421 malignas, 266 normais)
 - ✅ **Transfer Learning** com fine-tuning
@@ -21,7 +21,7 @@ Um sistema completo de classificação de imagens de ultrassonografia de mama ut
 - ✅ **Modelo treinado** salvo e funcional
 - ✅ **Sistema de inferência** para novas imagens
 
-### 🔄 **EM DESENVOLVIMENTO (Trabalho em Equipe)**
+### 🔄 **EM DESENVOLVIMENTO (possiveis melhorias)**
 - 🔄 **Validação cruzada k-fold** (próxima implementação)
 - 🔄 **Análise de ROC curves** (em desenvolvimento)
 - 🔄 **Ensemble de modelos** (planejado)
@@ -457,14 +457,11 @@ opencv-python>=4.5.0
 
 ## 🚨 Notas Importantes
 
-### **⚠️ Disclaimer Médico**
-Este sistema é **apenas para fins de pesquisa e educação**. **NÃO deve ser usado** para diagnóstico médico real. Sempre consulte profissionais qualificados.
 
 ### **📊 Limitações**
 - 📉 Dataset limitado (~1,578 imagens)
 - ⚖️ Classes desbalanceadas
 - 🏥 Apenas imagens de ultrassom
-- 🔬 Sem validação clínica externa
 
 ### **🔧 Troubleshooting**
 ```bash
@@ -483,14 +480,6 @@ Este sistema é **apenas para fins de pesquisa e educação**. **NÃO deve ser u
 ### **Status Atual do Projeto**
 Este projeto está sendo desenvolvido em equipe para fins acadêmicos/mestrado. A base técnica está **100% implementada e funcional**.
 
-### **Responsabilidades da Equipe**
-- 🔬 **Validação clínica** com profissionais médicos
-- 📊 **Análise estatística avançada** (ROC curves, validação cruzada)
-- 🧠 **Implementação de novas arquiteturas** (ResNet, EfficientNet)
-- 🤖 **Desenvolvimento de ensemble** de modelos
-- 🌐 **Interface web** para demonstração
-- 📝 **Documentação técnica** e relatórios acadêmicos
-
 ### **Próximos Passos (Equipe)**
 - [ ] 🔄 **Validação cruzada k-fold** (próxima prioridade)
 - [ ] 📈 **Análise de ROC curves** e AUC
@@ -498,7 +487,6 @@ Este projeto está sendo desenvolvido em equipe para fins acadêmicos/mestrado. 
 - [ ] 🤖 **Ensemble de modelos** para melhor performance
 - [ ] 🔄 **Data augmentation avançado** (mixup, cutmix)
 - [ ] ⚙️ **Fine-tuning adaptativo** por classe
-- [ ] 🌐 **Interface web** com Grad-CAM interativo
 - [ ] 📊 **Análise de confiabilidade** e calibração do modelo
 
 ### **Como Contribuir**
@@ -508,15 +496,12 @@ Este projeto está sendo desenvolvido em equipe para fins acadêmicos/mestrado. 
 4. 📤 **Push** para a branch (`git push origin feature/NovaFuncionalidade`)
 5. 🔀 **Abra** um Pull Request com descrição detalhada
 
-### **Padrões de Desenvolvimento**
-- 📝 **Documentação** obrigatória para novas funcionalidades
+### **Padrões de Desenvolvimento para atualizar a Main**
+- 📝 **Documentação** obrigatória para novas funcionalidades [dentro da pasta docs]
 - 🧪 **Testes** para validação de mudanças
 - 📊 **Métricas** de performance antes/depois
 - 🔍 **Code review** obrigatório
 
-## 📄 Licença
-
-Este projeto está licenciado sob a Licença MIT - veja o arquivo [LICENSE](LICENSE) para detalhes.
 
 ## 📚 Referências
 
@@ -524,32 +509,11 @@ Este projeto está licenciado sob a Licença MIT - veja o arquivo [LICENSE](LICE
 - 🔄 **Transfer Learning**: Pan, S. J., & Yang, Q. "A survey on transfer learning." TKDE 2010.
 - 🔍 **Grad-CAM**: Selvaraju, R. R., et al. "Grad-cam: Visual explanations from deep networks." ICCV 2017.
 
-## 📞 Contato e Equipe
+## 📞 Equipe
 
 ### **👥 Equipe de Desenvolvimento**
 **🏥 Projeto**: Classificação de Ultrassonografia de Mama com Deep Learning  
-**🏛️ Instituição**: [Nome da Universidade]  
-**🎓 Contexto**: Projeto de Mestrado em [Área]  
-
-### **📧 Contato**
-- **📧 Email Principal**: [email.equipe@universidade.edu]
-- **🔗 Repositório**: [Link do repositório]
-- **📋 Issues**: Use as issues do GitHub para reportar problemas
-
-### **🤝 Colaboração**
-Este projeto está aberto para colaboração acadêmica. Para contribuições:
-1. Abra uma issue descrevendo sua proposta
-2. Aguarde aprovação da equipe
-3. Siga os padrões de desenvolvimento estabelecidos
-
+**🏛️ Instituição**: Universidade Federal do Pará [UFPA]  
+**🎓 Contexto**: Trabalho da diciplina de IA Para Negócios 
+**🤖 Alunos responsaveis**: [Nossos nomes aqui] 
 ---
-
-<div align="center">
-
-**⭐ Se este projeto foi útil para sua pesquisa, considere dar uma estrela! ⭐**
-
-Made with ❤️ for Medical AI Research
-
-**Status**: ✅ Implementado e Funcional | 🔄 Em Desenvolvimento Colaborativo
-
-</div>
