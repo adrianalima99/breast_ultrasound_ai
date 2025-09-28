@@ -9,7 +9,7 @@ Um sistema completo de classificação de imagens de ultrassonografia de mama ut
 
 ## 📊 Status do Projeto
 
-### ✅ **IMPLEMENTADO E FUNCIONAL** (podendo ser validada e alterada vendo a necessidade)
+### ✅ **IMPLEMENTADO E FUNCIONAL** (Pode ser validada e alterada conforme necessário)
 - ✅ **Sistema completo de classificação** com DenseNet121
 - ✅ **Dataset estruturado** (1,578 imagens: 891 benignas, 421 malignas, 266 normais)
 - ✅ **Transfer Learning** com fine-tuning
