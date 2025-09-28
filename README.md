@@ -9,7 +9,7 @@ Um sistema completo de classificação de imagens de ultrassonografia de mama ut
 
 ## 📊 Status do Projeto
 
-### ✅ **IMPLEMENTADO E FUNCIONAL** (podendo ser validada e alterada vendo a necessidade)
+### ✅ **IMPLEMENTADO E FUNCIONAL** (pode ser validado e alterado conforme a necessidade)
 - ✅ **Sistema completo de classificação** com DenseNet121
 - ✅ **Dataset estruturado** (1,578 imagens: 891 benignas, 421 malignas, 266 normais)
 - ✅ **Transfer Learning** com fine-tuning
@@ -21,7 +21,7 @@ Um sistema completo de classificação de imagens de ultrassonografia de mama ut
 - ✅ **Modelo treinado** salvo e funcional
 - ✅ **Sistema de inferência** para novas imagens
 
-### 🔄 **EM DESENVOLVIMENTO (possiveis melhorias)**
+### 🔄 **EM DESENVOLVIMENTO (possíveis melhorias)**
 - 🔄 **Validação cruzada k-fold** (próxima implementação)
 - 🔄 **Análise de ROC curves** (em desenvolvimento)
 - 🔄 **Ensemble de modelos** (planejado)
@@ -46,6 +46,14 @@ Um sistema completo de classificação de imagens de ultrassonografia de mama ut
 ## 🎯 Visão Geral
 
 Este projeto implementa uma solução completa para classificação automática de imagens de ultrassonografia de mama, utilizando técnicas modernas de **Deep Learning** e **Transfer Learning**. O sistema é projetado para auxiliar profissionais da saúde na análise preliminar de imagens médicas, oferecendo alta precisão e interpretabilidade.
+
+### **O que foi desenvolvido até agora:**
+- ✅ Sistema completo de classificação com DenseNet121
+- ✅ Dataset estruturado e organizado (1,578 imagens)
+- ✅ Pipeline completo de treinamento e avaliação
+- ✅ Sistema de interpretabilidade com Grad-CAM
+- ✅ Visualizações profissionais e relatórios detalhados
+- ✅ Modelo treinado pronto para uso
 
 ### 🎯 Objetivos
 - **Classificação Automática**: Distinguir entre lesões benignas, malignas e tecido normal
@@ -478,10 +486,10 @@ opencv-python>=4.5.0
 ## 👥 Trabalho em Equipe
 
 ### **Status Atual do Projeto**
-Este projeto está sendo desenvolvido em equipe para fins acadêmicos/mestrado. A base técnica está **100% implementada e funcional**.
+Este projeto está sendo desenvolvido em equipe para fins acadêmicos/mestrado. A base técnica está **100% implementada e funcional**. O que foi desenvolvido até agora inclui um sistema completo de classificação de imagens de ultrassonografia de mama, com todas as funcionalidades principais já operacionais.
 
-### **Próximos Passos (Equipe)**
-- [ ] 🔄 **Validação cruzada k-fold** (próxima prioridade)
+### **Sugestões de Melhorias para a Equipe**
+- [ ] 🔄 **Validação cruzada k-fold** (sugestão de próxima prioridade)
 - [ ] 📈 **Análise de ROC curves** e AUC
 - [ ] 🧠 **Comparação de arquiteturas** (ResNet, EfficientNet, Vision Transformer)
 - [ ] 🤖 **Ensemble de modelos** para melhor performance
@@ -490,17 +498,18 @@ Este projeto está sendo desenvolvido em equipe para fins acadêmicos/mestrado. 
 - [ ] 📊 **Análise de confiabilidade** e calibração do modelo
 
 ### **Como Contribuir**
+Se você gostaria de contribuir com o projeto, aqui estão algumas sugestões de como proceder:
 1. 🍴 **Fork** o projeto
 2. 🌿 **Crie** uma branch para sua feature (`git checkout -b feature/NovaFuncionalidade`)
 3. 💾 **Commit** suas mudanças (`git commit -m 'Add: Nova funcionalidade'`)
 4. 📤 **Push** para a branch (`git push origin feature/NovaFuncionalidade`)
 5. 🔀 **Abra** um Pull Request com descrição detalhada
 
-### **Padrões de Desenvolvimento para atualizar a Main**
-- 📝 **Documentação** obrigatória para novas funcionalidades [dentro da pasta docs]
+### **Sugestões de Padrões para Atualizações**
+- 📝 **Documentação** sugerida para novas funcionalidades [dentro da pasta docs]
 - 🧪 **Testes** para validação de mudanças
 - 📊 **Métricas** de performance antes/depois
-- 🔍 **Code review** obrigatório
+- 🔍 **Code review** recomendado
 
 
 ## 📚 Referências
@@ -514,6 +523,6 @@ Este projeto está sendo desenvolvido em equipe para fins acadêmicos/mestrado. 
 ### **👥 Equipe de Desenvolvimento**
 **🏥 Projeto**: Classificação de Ultrassonografia de Mama com Deep Learning  
 **🏛️ Instituição**: Universidade Federal do Pará [UFPA]  
-**🎓 Contexto**: Trabalho da diciplina de IA Para Negócios 
-**🤖 Alunos responsaveis**: [Nossos nomes aqui] 
+**🎓 Contexto**: Trabalho da disciplina de IA Para Negócios 
+**🤖 Alunos responsáveis**: [Nossos nomes aqui] 
 ---
