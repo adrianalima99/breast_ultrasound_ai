@@ -266,6 +266,9 @@ mlruns/
 ehthumbs.db
 Thumbs.db
 
+
+results/
+results/*
 # Project specific
 # Manter apenas os arquivos essenciais do projeto
 # Comentários sobre o que incluir/excluir:

@@ -289,7 +289,7 @@ class BreastUltrasoundClassifier:
         print(f"Treinamento do modelo {model_type.upper()} concluído!")
         
         # Plotar gráficos de treinamento
-        self.plot_training_history(train_losses, val_losses, train_accuracies, val_accuracies)
+        self.plot_training_history(train_losses, val_losses, train_accuracies, val_accuracies, model_type)
         
         return train_losses, val_losses, train_accuracies, val_accuracies
     
@@ -366,18 +366,18 @@ class BreastUltrasoundClassifier:
         print(f"  F1-Score: {f1:.4f}")
         
         # Métricas detalhadas por classe
-        self.detailed_class_metrics(all_labels, all_predictions)
+        self.detailed_class_metrics(all_labels, all_predictions, model_type)
         
         # Matriz de confusão
         cm = confusion_matrix(all_labels, all_predictions)
-        self.plot_confusion_matrix(cm)
+        self.plot_confusion_matrix(cm, model_type)
         
         # Análise de erros
-        self.error_analysis(all_labels, all_predictions)
+        self.error_analysis(all_labels, all_predictions, model_type)
         
         return accuracy, precision, recall, f1, cm
 
-    def detailed_class_metrics(self, all_labels, all_predictions):
+    def detailed_class_metrics(self, all_labels, all_predictions, model_type="dnn"):
         """Calcula métricas detalhadas por classe"""
         print("\n" + "="*60)
         print("MÉTRICAS DETALHADAS POR CLASSE")
@@ -404,14 +404,14 @@ class BreastUltrasoundClassifier:
         print(report)
         
         # Salvar relatório em arquivo
-        with open('results/graphs/classification_report.txt', 'w', encoding='utf-8') as f:
+        with open(f'results/graphs/{model_type}/classification_report.txt', 'w', encoding='utf-8') as f:
             f.write("RELATÓRIO DE CLASSIFICAÇÃO\n")
             f.write("="*60 + "\n")
             f.write(report)
         
         print("\nRelatório detalhado salvo em: results/graphs/classification_report.txt")
 
-    def error_analysis(self, all_labels, all_predictions):
+    def error_analysis(self, all_labels, all_predictions, model_type="dnn"):
         """Analisa os erros do modelo"""
         print("\n" + "="*60)
         print("ANÁLISE DE ERROS")
@@ -445,7 +445,7 @@ class BreastUltrasoundClassifier:
                     print(f"{self.classes[i]} → {self.classes[j]}: {cm[i, j]} casos")
         
         # Salvar análise de erros
-        with open('results/graphs/error_analysis.txt', 'w', encoding='utf-8') as f:
+        with open(f'results/graphs/{model_type}/error_analysis.txt', 'w', encoding='utf-8') as f:
             f.write("ANÁLISE DE ERROS\n")
             f.write("="*60 + "\n")
             for class_name, stats in class_errors.items():
