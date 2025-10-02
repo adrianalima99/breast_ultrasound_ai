@@ -1,0 +1,11 @@
+RELATÓRIO DE CLASSIFICAÇÃO
+============================================================
+              precision    recall  f1-score   support
+
+      benign     0.9452    0.9718    0.9583       142
+   malignant     1.0000    0.8148    0.8980        54
+      normal     0.8750    1.0000    0.9333        42
+
+    accuracy                         0.9412       238
+   macro avg     0.9401    0.9289    0.9299       238
+weighted avg     0.9452    0.9412    0.9402       238

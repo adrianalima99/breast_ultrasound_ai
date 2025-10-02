@@ -1,0 +1,7 @@
+Training and Testing Results:
+Epoch [1/5], Loss: 1.5710, Accuracy: 49.52%, Precision: 0.4169, Recall: 0.4952, F1-Score: 0.4269
+Epoch [2/5], Loss: 0.8583, Accuracy: 60.38%, Precision: 0.5866, Recall: 0.6038, F1-Score: 0.5567
+Epoch [3/5], Loss: 0.9065, Accuracy: 57.84%, Precision: 0.5535, Recall: 0.5784, F1-Score: 0.5237
+Epoch [4/5], Loss: 0.8783, Accuracy: 59.19%, Precision: 0.5926, Recall: 0.5919, F1-Score: 0.5270
+Epoch [5/5], Loss: 0.7912, Accuracy: 63.23%, Precision: 0.6279, Recall: 0.6323, F1-Score: 0.5894
+Test Accuracy: 67.72%, Precision: 0.6968, Recall: 0.6772, F1-Score: 0.6165, AUC-ROC: 0.7544

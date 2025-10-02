@@ -1,8 +1,3 @@
-"""
-Classificador de Imagens de Ultrassonografia de Mama
-Usando PyTorch para classificar imagens em: benign, malignant, normal
-"""
-
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -12,7 +7,7 @@ from PIL import Image
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
-from sklearn.metrics import accuracy_score, precision_recall_fscore_support, confusion_matrix, classification_report, roc_auc_score, roc_curve
+from sklearn.metrics import accuracy_score, precision_recall_fscore_support, confusion_matrix, classification_report
 import os
 from pathlib import Path
 import warnings
@@ -96,7 +91,8 @@ class BreastUltrasoundClassifier:
             transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
         ])
         
-        self.model = None
+        self.model_dnn = None
+        self.model_cnn = None
         self.train_loader = None
         self.val_loader = None
         self.test_loader = None
@@ -152,31 +148,55 @@ class BreastUltrasoundClassifier:
         
         return train_dataset, val_dataset, test_dataset
     
-    def create_model(self):
-        """Cria o modelo DenseNet121"""
-        print("Criando modelo DenseNet121...")
+    def create_model_dnn(self):
+        """Cria o modelo DNN (Deep Neural Network)"""
+        print("Criando modelo DNN...")
+        
+        # Definir uma rede totalmente conectada (DNN)
+        self.model_dnn = nn.Sequential(
+            nn.Flatten(),
+            nn.Linear(IMG_SIZE * IMG_SIZE * 3, 512),
+            nn.ReLU(),
+            nn.Dropout(0.5),
+            nn.Linear(512, self.num_classes)
+        )
+        
+        self.model_dnn = self.model_dnn.to(device)
+        
+        print(f"Modelo DNN criado com {sum(p.numel() for p in self.model_dnn.parameters())} parâmetros")
+        return self.model_dnn
+    
+    def create_model_cnn(self):
+        """Cria o modelo CNN (Convolutional Neural Network)"""
+        print("Criando modelo CNN...")
         
         import torchvision.models as models
         
-        # Usar DenseNet121 pré-treinado
-        self.model = models.densenet121(pretrained=True)
+        # Usar ResNet18 pré-treinado
+        self.model_cnn = models.resnet18(pretrained=True)
         
         # Modificar a última camada para 3 classes
-        num_features = self.model.classifier.in_features
-        self.model.classifier = nn.Linear(num_features, self.num_classes)
+        num_features = self.model_cnn.fc.in_features
+        self.model_cnn.fc = nn.Linear(num_features, self.num_classes)
         
-        self.model = self.model.to(device)
+        self.model_cnn = self.model_cnn.to(device)
         
-        print(f"Modelo criado com {sum(p.numel() for p in self.model.parameters())} parâmetros")
-        return self.model
+        print(f"Modelo CNN criado com {sum(p.numel() for p in self.model_cnn.parameters())} parâmetros")
+        return self.model_cnn
     
-    def train_model(self, num_epochs=20, learning_rate=1e-4, patience=5, min_delta=0.001):
+    def train_model(self, model_type="dnn", num_epochs=20, learning_rate=1e-4, patience=5, min_delta=0.001):
         """Treina o modelo"""
-        if self.model is None:
-            self.create_model()
-        
+        if model_type == "dnn" and self.model_dnn is None:
+            self.create_model_dnn()  # Cria o modelo DNN
+            model = self.model_dnn
+        elif model_type == "cnn" and self.model_cnn is None:
+            self.create_model_cnn()  # Cria o modelo CNN
+            model = self.model_cnn
+        else:
+            raise ValueError("Tipo de modelo inválido!")
+
         criterion = nn.CrossEntropyLoss()
-        optimizer = optim.Adam(self.model.parameters(), lr=learning_rate)
+        optimizer = optim.Adam(model.parameters(), lr=learning_rate)
         
         train_losses = []
         val_losses = []
@@ -188,13 +208,13 @@ class BreastUltrasoundClassifier:
         patience_counter = 0
         best_model_state = None
         
-        print(f"\nIniciando treinamento por {num_epochs} épocas...")
+        print(f"\nIniciando treinamento do modelo {model_type.upper()} por {num_epochs} épocas...")
         print(f"Early Stopping: paciência={patience}, min_delta={min_delta}")
         print("-" * 50)
         
         for epoch in range(num_epochs):
             # Treinamento
-            self.model.train()
+            model.train()
             train_loss = 0.0
             train_correct = 0
             train_total = 0
@@ -203,7 +223,7 @@ class BreastUltrasoundClassifier:
                 images, labels = images.to(device), labels.to(device)
                 
                 optimizer.zero_grad()
-                outputs = self.model(images)
+                outputs = model(images)
                 loss = criterion(outputs, labels)
                 loss.backward()
                 optimizer.step()
@@ -214,7 +234,7 @@ class BreastUltrasoundClassifier:
                 train_correct += (predicted == labels).sum().item()
             
             # Validação
-            self.model.eval()
+            model.eval()
             val_loss = 0.0
             val_correct = 0
             val_total = 0
@@ -222,7 +242,7 @@ class BreastUltrasoundClassifier:
             with torch.no_grad():
                 for images, labels in self.val_loader:
                     images, labels = images.to(device), labels.to(device)
-                    outputs = self.model(images)
+                    outputs = model(images)
                     loss = criterion(outputs, labels)
                     
                     val_loss += loss.item()
@@ -249,7 +269,7 @@ class BreastUltrasoundClassifier:
             if val_loss_avg < best_val_loss - min_delta:
                 best_val_loss = val_loss_avg
                 patience_counter = 0
-                best_model_state = self.model.state_dict().copy()
+                best_model_state = model.state_dict().copy()
                 print(f"  → Novo melhor modelo! Val Loss: {val_loss_avg:.4f}")
             else:
                 patience_counter += 1
@@ -262,19 +282,24 @@ class BreastUltrasoundClassifier:
         
         # Restaurar melhor modelo
         if best_model_state is not None:
-            self.model.load_state_dict(best_model_state)
+            model.load_state_dict(best_model_state)
             print(f"\nMelhor modelo restaurado (Val Loss: {best_val_loss:.4f})")
         
         print("-" * 50)
-        print("Treinamento concluído!")
+        print(f"Treinamento do modelo {model_type.upper()} concluído!")
         
         # Plotar gráficos de treinamento
         self.plot_training_history(train_losses, val_losses, train_accuracies, val_accuracies)
         
         return train_losses, val_losses, train_accuracies, val_accuracies
     
-    def plot_training_history(self, train_losses, val_losses, train_accs, val_accs):
-        """Plota o histórico de treinamento"""
+    def plot_training_history(self, train_losses, val_losses, train_accs, val_accs, model_type="dnn"):
+        """Plota o histórico de treinamento e salva os gráficos"""
+        
+        # Definir o caminho de salvamento dependendo do tipo de modelo
+        save_dir = f'results/graphs/{model_type}'
+        os.makedirs(save_dir, exist_ok=True)  # Cria o diretório se não existir
+        
         fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 4))
         
         # Loss
@@ -296,24 +321,33 @@ class BreastUltrasoundClassifier:
         ax2.grid(True)
         
         plt.tight_layout()
-        plt.savefig('results/graphs/training_history.png', dpi=300, bbox_inches='tight')
+
+        # Salvar os gráficos no diretório correspondente
+        plt.savefig(f'{save_dir}/training_history.png', dpi=300, bbox_inches='tight')
         plt.show()
-    
-    def evaluate_model(self):
+
+    def evaluate_model(self, model_type="dnn"):
         """Avalia o modelo no conjunto de teste"""
-        if self.model is None:
-            raise ValueError("Modelo não foi treinado ainda!")
+        if model_type == "dnn":
+            model = self.model_dnn
+        elif model_type == "cnn":
+            model = self.model_cnn
+        else:
+            raise ValueError("Tipo de modelo inválido!")
+
+        if model is None:
+            raise ValueError(f"Modelo {model_type.upper()} não foi treinado ainda!")
         
-        print("\nAvaliando modelo no conjunto de teste...")
+        print(f"\nAvaliando o modelo {model_type.upper()} no conjunto de teste...")
         
-        self.model.eval()
+        model.eval()
         all_predictions = []
         all_labels = []
         
         with torch.no_grad():
             for images, labels in self.test_loader:
                 images, labels = images.to(device), labels.to(device)
-                outputs = self.model(images)
+                outputs = model(images)
                 _, predicted = torch.max(outputs, 1)
                 
                 all_predictions.extend(predicted.cpu().numpy())
@@ -325,7 +359,7 @@ class BreastUltrasoundClassifier:
             all_labels, all_predictions, average='weighted'
         )
         
-        print(f"\nMétricas no conjunto de teste:")
+        print(f"\nMétricas no conjunto de teste para o modelo {model_type.upper()}:")
         print(f"  Acurácia: {accuracy:.4f} ({accuracy*100:.2f}%)")
         print(f"  Precisão: {precision:.4f}")
         print(f"  Recall: {recall:.4f}")
@@ -342,7 +376,7 @@ class BreastUltrasoundClassifier:
         self.error_analysis(all_labels, all_predictions)
         
         return accuracy, precision, recall, f1, cm
-    
+
     def detailed_class_metrics(self, all_labels, all_predictions):
         """Calcula métricas detalhadas por classe"""
         print("\n" + "="*60)
@@ -376,7 +410,7 @@ class BreastUltrasoundClassifier:
             f.write(report)
         
         print("\nRelatório detalhado salvo em: results/graphs/classification_report.txt")
-    
+
     def error_analysis(self, all_labels, all_predictions):
         """Analisa os erros do modelo"""
         print("\n" + "="*60)
@@ -419,266 +453,24 @@ class BreastUltrasoundClassifier:
         
         print("\nAnálise de erros salva em: results/graphs/error_analysis.txt")
     
-    def plot_confusion_matrix(self, cm):
-        """Plota a matriz de confusão"""
+    def plot_confusion_matrix(self, cm, model_type="dnn"):
+        """Plota a matriz de confusão e salva a imagem"""
+        
+        # Definir o caminho de salvamento dependendo do tipo de modelo
+        save_dir = f'results/graphs/{model_type}'
+        os.makedirs(save_dir, exist_ok=True)  # Cria o diretório se não existir
+        
+        # Plotando a matriz de confusão
         plt.figure(figsize=(8, 6))
         sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', 
-                   xticklabels=self.classes, yticklabels=self.classes)
+                    xticklabels=self.classes, yticklabels=self.classes)
         plt.title('Matriz de Confusão')
         plt.xlabel('Predição')
         plt.ylabel('Verdadeiro')
+        
+        # Salvar a matriz de confusão no diretório correspondente
         plt.tight_layout()
-        plt.savefig('results/graphs/confusion_matrix.png', dpi=300, bbox_inches='tight')
-        plt.show()
-    
-    def save_model(self, filepath='results/models/breast_ultrasound_model.pth'):
-        """Salva o modelo treinado"""
-        if self.model is None:
-            raise ValueError("Modelo não foi treinado ainda!")
-        
-        torch.save({
-            'model_state_dict': self.model.state_dict(),
-            'num_classes': self.num_classes,
-            'classes': self.classes,
-            'img_size': self.img_size
-        }, filepath)
-        print(f"Modelo salvo em: {filepath}")
-    
-    def load_model(self, filepath='breast_ultrasound_model.pth'):
-        """Carrega um modelo treinado"""
-        import torchvision.models as models
-        
-        checkpoint = torch.load(filepath, map_location=device)
-        
-        self.model = models.densenet121(pretrained=False)
-        num_features = self.model.classifier.in_features
-        self.model.classifier = nn.Linear(num_features, checkpoint['num_classes'])
-        self.model.load_state_dict(checkpoint['model_state_dict'])
-        self.model = self.model.to(device)
-        self.model.eval()
-        print(f"Modelo carregado de: {filepath}")
-    
-    def predict_image(self, image_path, show_image=True):
-        """Faz predição em uma imagem"""
-        if self.model is None:
-            raise ValueError("Modelo não foi carregado ainda!")
-        
-        # Carregar e pré-processar imagem
-        image = Image.open(image_path).convert('RGB')
-        image_tensor = self.val_transforms(image).unsqueeze(0).to(device)
-        
-        # Fazer predição
-        self.model.eval()
-        with torch.no_grad():
-            output = self.model(image_tensor)
-            probabilities = torch.softmax(output, dim=1)
-            confidence, predicted_class = torch.max(probabilities, 1)
-        
-        predicted_class = predicted_class.item()
-        confidence = confidence.item()
-        predicted_label = self.classes[predicted_class]
-        
-        print(f"\nPredição para {Path(image_path).name}:")
-        print(f"  Classe predita: {predicted_label}")
-        print(f"  Confiança: {confidence:.4f} ({confidence*100:.2f}%)")
-        
-        # Mostrar probabilidades para todas as classes
-        print("  Probabilidades:")
-        for i, class_name in enumerate(self.classes):
-            prob = probabilities[0][i].item()
-            print(f"    {class_name}: {prob:.4f} ({prob*100:.2f}%)")
-        
-        # Mostrar imagem se solicitado
-        if show_image:
-            plt.figure(figsize=(8, 6))
-            plt.imshow(image)
-            plt.title(f'Predição: {predicted_label} (Confiança: {confidence*100:.1f}%)')
-            plt.axis('off')
-            plt.tight_layout()
-            plt.show()
-        
-        return predicted_label, confidence, probabilities[0].cpu().numpy()
-    
-    def generate_gradcam(self, image_path, layer_name='features.denseblock4.denselayer16.norm2', 
-                        class_idx=None, show_image=True):
-        """Gera Grad-CAM para interpretabilidade do modelo"""
-        if self.model is None:
-            raise ValueError("Modelo não foi carregado ainda!")
-        
-        import cv2
-        from PIL import Image as PILImage
-        
-        # Carregar e pré-processar imagem
-        image = PILImage.open(image_path).convert('RGB')
-        original_size = image.size
-        
-        # Transformação para o modelo
-        transform = transforms.Compose([
-            transforms.Resize((self.img_size, self.img_size)),
-            transforms.ToTensor(),
-            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
-        ])
-        
-        input_tensor = transform(image).unsqueeze(0).to(device)
-        
-        # Registrar hook para capturar gradientes
-        gradients = []
-        activations = []
-        
-        def backward_hook(module, grad_input, grad_output):
-            gradients.append(grad_output[0])
-        
-        def forward_hook(module, input, output):
-            activations.append(output)
-        
-        # Encontrar a camada alvo
-        target_layer = None
-        for name, module in self.model.named_modules():
-            if layer_name in name:
-                target_layer = module
-                break
-        
-        if target_layer is None:
-            print(f"Camada {layer_name} não encontrada. Usando última camada conv.")
-            # Usar última camada convolucional
-            for name, module in self.model.named_modules():
-                if 'conv' in name.lower() or 'norm' in name.lower():
-                    target_layer = module
-        
-        # Registrar hooks
-        hook1 = target_layer.register_forward_hook(forward_hook)
-        hook2 = target_layer.register_backward_hook(backward_hook)
-        
-        # Forward pass
-        self.model.eval()
-        input_tensor.requires_grad_()
-        output = self.model(input_tensor)
-        
-        # Se class_idx não especificado, usar predição
-        if class_idx is None:
-            class_idx = torch.argmax(output, dim=1)
-        
-        # Backward pass
-        self.model.zero_grad()
-        output[0, class_idx].backward()
-        
-        # Remover hooks
-        hook1.remove()
-        hook2.remove()
-        
-        # Calcular Grad-CAM
-        gradients = gradients[0]  # [1, C, H, W]
-        activations = activations[0]  # [1, C, H, W]
-        
-        # Pooling global dos gradientes
-        weights = torch.mean(gradients, dim=(2, 3), keepdim=True)  # [1, C, 1, 1]
-        
-        # Multiplicar ativações pelos pesos
-        cam = torch.sum(weights * activations, dim=1, keepdim=True)  # [1, 1, H, W]
-        cam = torch.relu(cam)  # Aplicar ReLU
-        
-        # Normalizar
-        cam = cam.squeeze().cpu().numpy()
-        cam = (cam - cam.min()) / (cam.max() - cam.min())
-        
-        # Redimensionar para tamanho original
-        cam_resized = cv2.resize(cam, original_size)
-        
-        # Criar visualização
-        if show_image:
-            fig, axes = plt.subplots(1, 3, figsize=(15, 5))
-            
-            # Imagem original
-            axes[0].imshow(image)
-            axes[0].set_title('Imagem Original')
-            axes[0].axis('off')
-            
-            # Grad-CAM
-            im1 = axes[1].imshow(cam_resized, cmap='jet', alpha=0.8)
-            axes[1].set_title('Grad-CAM')
-            axes[1].axis('off')
-            plt.colorbar(im1, ax=axes[1], fraction=0.046, pad=0.04)
-            
-            # Sobreposição
-            axes[2].imshow(image)
-            axes[2].imshow(cam_resized, cmap='jet', alpha=0.5)
-            axes[2].set_title('Sobreposição')
-            axes[2].axis('off')
-            
-            plt.tight_layout()
-            plt.savefig('results/graphs/gradcam_analysis.png', dpi=300, bbox_inches='tight')
-            plt.show()
-        
-        return cam_resized
-    
-    def visualize_predictions(self, num_samples=9, save_results=True):
-        """Visualiza predições do modelo no conjunto de teste"""
-        if self.model is None:
-            raise ValueError("Modelo não foi treinado ainda!")
-        
-        self.model.eval()
-        
-        # Coletar algumas amostras do teste
-        sample_images = []
-        sample_labels = []
-        sample_predictions = []
-        sample_confidences = []
-        
-        with torch.no_grad():
-            count = 0
-            for images, labels in self.test_loader:
-                if count >= num_samples:
-                    break
-                    
-                images, labels = images.to(device), labels.to(device)
-                outputs = self.model(images)
-                probabilities = torch.softmax(outputs, dim=1)
-                confidence, predicted = torch.max(probabilities, 1)
-                
-                # Adicionar amostras
-                for i in range(min(len(images), num_samples - count)):
-                    sample_images.append(images[i].cpu())
-                    sample_labels.append(labels[i].cpu().item())
-                    sample_predictions.append(predicted[i].cpu().item())
-                    sample_confidences.append(confidence[i].cpu().item())
-                    count += 1
-                    
-                    if count >= num_samples:
-                        break
-        
-        # Criar visualização
-        fig, axes = plt.subplots(3, 3, figsize=(15, 15))
-        axes = axes.ravel()
-        
-        for i in range(min(num_samples, len(sample_images))):
-            # Desnormalizar imagem
-            img = sample_images[i]
-            img = img * torch.tensor([0.229, 0.224, 0.225]).view(3, 1, 1)
-            img = img + torch.tensor([0.485, 0.456, 0.406]).view(3, 1, 1)
-            img = torch.clamp(img, 0, 1)
-            img = img.permute(1, 2, 0)
-            
-            # Mostrar imagem
-            axes[i].imshow(img)
-            
-            # Título com predição
-            true_label = self.classes[sample_labels[i]]
-            pred_label = self.classes[sample_predictions[i]]
-            confidence = sample_confidences[i]
-            
-            color = 'green' if sample_labels[i] == sample_predictions[i] else 'red'
-            title = f'Verdadeiro: {true_label}\nPredito: {pred_label}\nConfiança: {confidence:.2%}'
-            
-            axes[i].set_title(title, color=color, fontsize=10)
-            axes[i].axis('off')
-        
-        plt.suptitle('Visualização de Predições no Conjunto de Teste', fontsize=16)
-        plt.tight_layout()
-        
-        if save_results:
-            plt.savefig('results/graphs/prediction_visualization.png', dpi=300, bbox_inches='tight')
-            print("Visualização de predições salva em: results/graphs/prediction_visualization.png")
-        
+        plt.savefig(f'{save_dir}/confusion_matrix.png', dpi=300, bbox_inches='tight')
         plt.show()
 
 
@@ -698,55 +490,19 @@ def main():
     # Carregar dataset
     train_dataset, val_dataset, test_dataset = classifier.load_dataset()
     
-    # Criar modelo
-    classifier.create_model()
+    # Treinar o modelo DNN
+    classifier.train_model(model_type="dnn", num_epochs=NUM_EPOCHS, learning_rate=LEARNING_RATE)
     
-    # Treinar modelo
-    classifier.train_model(num_epochs=NUM_EPOCHS, learning_rate=LEARNING_RATE)
+    # Avaliar o modelo DNN
+    classifier.evaluate_model(model_type="dnn")
     
-    # Avaliar modelo
-    classifier.evaluate_model()
+    # Treinar o modelo CNN
+    classifier.train_model(model_type="cnn", num_epochs=NUM_EPOCHS, learning_rate=LEARNING_RATE)
     
-    # Visualizar predições
-    classifier.visualize_predictions(num_samples=9)
-    
-    # Salvar modelo
-    classifier.save_model()
-    
-    # Exemplo de inferência
-    print("\n" + "=" * 50)
-    print("Exemplo de inferência:")
-    
-    # Encontrar uma imagem de exemplo
-    example_image = None
-    for class_name in CLASSES:
-        class_dir = Path(DATA_DIR) / class_name
-        if class_dir.exists():
-            images = list(class_dir.glob("*.png"))
-            if images:
-                example_image = images[0]
-                break
-    
-    if example_image:
-        classifier.predict_image(str(example_image))
-        
-        # Gerar Grad-CAM para interpretabilidade
-        print("\n" + "=" * 50)
-        print("Gerando Grad-CAM para interpretabilidade...")
-        classifier.generate_gradcam(str(example_image))
-    else:
-        print("Nenhuma imagem de exemplo encontrada!")
+    # Avaliar o modelo CNN
+    classifier.evaluate_model(model_type="cnn")
     
     print("\nTreinamento e avaliação concluídos!")
-    print("Arquivos gerados:")
-    print("  - results/models/breast_ultrasound_model.pth (modelo treinado)")
-    print("  - results/graphs/training_history.png (gráficos de treinamento)")
-    print("  - results/graphs/confusion_matrix.png (matriz de confusão)")
-    print("  - results/graphs/prediction_visualization.png (visualização de predições)")
-    print("  - results/graphs/gradcam_analysis.png (análise Grad-CAM)")
-    print("  - results/graphs/classification_report.txt (relatório detalhado)")
-    print("  - results/graphs/error_analysis.txt (análise de erros)")
-
 
 if __name__ == "__main__":
     main()

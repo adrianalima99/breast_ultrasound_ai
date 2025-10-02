@@ -2,7 +2,7 @@
 Exemplo de uso das funcionalidades avançadas do classificador
 """
 
-from breast_ultrasound_classifier import BreastUltrasoundClassifier
+from dnn_breast_ultrasound_classifier import BreastUltrasoundClassifier
 from pathlib import Path
 
 def main():
